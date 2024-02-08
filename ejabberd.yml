@@ -1,0 +1,329 @@
+hosts: [suchat.org]
+loglevel: info
+log_rotate_count: 5
+
+certfiles:
+  - /home/ejabber/etc/ejabberd/cert/suchat.org/fullchain.pem
+  - /home/ejabber/etc/ejabberd/cert/suchat.org/privkey.pem
+
+define_macro:
+  'DH_FILE': "/home/ejabber/etc/ejabberd/dh.pem"
+
+  CIPHERS_MODERN: "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CAMELLIA256-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA"
+  PROTOCOL_MODERN:
+    - "no_sslv2"
+    - "no_sslv3"
+    - "no_tlsv1"
+    - "no_tlsv1_1"
+    
+c2s_dhfile: 'DH_FILE'
+s2s_dhfile: 'DH_FILE'
+c2s_ciphers: CIPHERS_MODERN
+s2s_ciphers: CIPHERS_MODERN
+c2s_protocol_options: PROTOCOL_MODERN
+s2s_protocol_options: PROTOCOL_MODERN
+websocket_ping_interval: 55
+listen:
+  -
+    port: 5222
+    ip: "::"
+    module: ejabberd_c2s
+    max_stanza_size: 262144
+    starttls_required: true
+    shaper: c2s_shaper
+    access: c2s
+  -
+    port: 5223
+    ip: "::"
+    module: ejabberd_c2s
+    max_stanza_size: 262144
+    shaper: c2s_shaper
+    access: c2s
+    tls: true
+  -
+    port: 5269
+    ip: "::"
+    module: ejabberd_s2s_in
+    shaper: s2s_shaper
+    max_stanza_size: 524288
+    
+  -
+    port: 5443
+    ip: "::"
+    module: ejabberd_http
+    request_handlers:
+      /bosh: mod_bosh
+      /captcha: ejabberd_captcha
+      /ws: ejabberd_http_ws
+      /upload: mod_http_upload
+    tls: true
+    ciphers: CIPHERS_MODERN
+    protocol_options: PROTOCOL_MODERN
+  -
+    port: 3478
+    ip: "::"
+    module: ejabberd_stun
+    transport: udp
+    use_turn: true
+    turn_min_port: 49152
+    turn_max_port: 65535
+    turn_ipv4_address: "82.223.66.252"
+    turn_ipv6_address: "2001:ba0:1800:1d6::1"
+  -
+    port: 5349
+    ip: "::"
+    module: ejabberd_stun
+    transport: tcp
+    tls: true
+
+    use_turn: true
+    turn_min_port: 49152
+    turn_max_port: 65535
+    turn_ipv4_address: "82.223.66.252"
+    turn_ipv6_address: "2001:ba0:1800:1d6::1"
+  -
+    port: 1883
+    module: mod_mqtt
+    backlog: 1000
+  -
+    port: 8883
+    module: mod_mqtt
+    backlog: 1000
+    tls: true
+
+s2s_use_starttls: required
+disable_sasl_mechanisms: "digest-md5"
+websocket_timeout: 3600
+negotiation_timeout: 30
+s2s_access: s2s
+auth_method: sql
+auth_password_format: scram
+sql_type: mysql
+sql_server: "localhost"
+sql_database: "ejabberd"
+sql_username: "ejabberd"
+sql_password: "????????"
+default_db: sql
+sql_port: 3306
+sql_pool_size: 10
+sql_keepalive_interval: 28800
+shaper:
+  normal:
+    rate: 3000
+    burst_size: 20000
+  fast: 100000
+max_fsm_queue: 20000
+acl:
+  admin:
+    user:
+      - "carlos@suchat.org"
+  paying_customers:
+    server: "suchat.org"
+  blocked:
+    user:
+      - "suchat.org"
+      - "admin"
+      - "suchat.fsinf.org"
+      - "fsinf.org"
+      - "webmaster"
+      - "root"
+      - "postmaster"
+      - "jabber"
+      - "hostmaster"
+      - "fsinf"
+      - "ejabberd"
+      - "jsman"
+      - "jsmann"
+      - "js"
+      - "paypal"
+      - "112"
+      - "911"
+      - "091"
+      - "092"
+      - "107"
+      - "106"
+      - "105"
+      - "103"
+
+  local: 
+    user_regexp: ""
+  loopback:
+    ip:
+      - 127.0.0.0/8
+      - ::1/128
+shaper_rules:
+  max_user_sessions: 10
+  max_user_offline_messages:
+    500: admin
+    100: all
+  c2s_shaper:
+    none: admin
+    normal: all
+  s2s_shaper: fast
+  soft_upload_quota:
+    - 450: all # MiB
+  hard_upload_quota:
+    - 500: all # MiB
+access_rules:
+  local:
+    allow: local
+  c2s:
+    deny: blocked
+    allow: all
+  s2s:
+    deny: bad_servers
+    allow: all
+  announce:
+    allow: admin
+  configure: 
+    allow: admin
+  muc_create: 
+    allow: local
+  pubsub_createnode: 
+    allow: local
+  trusted_network: 
+    allow: loopback
+registration_timeout: 3600
+language: "es"
+captcha_cmd: "/home/ejabberd/lib/ejabberd/priv/bin/captcha.sh"
+captcha_url: "https://suchat.org:5443/captcha"
+captcha_limit: 5
+
+acme:
+   contact: "mailto:admin@suchat.org"
+   ca_url: "https://acme-v02.api.letsencrypt.org/directory"
+
+modules:
+  mod_adhoc: {}
+  mod_admin_extra: {}
+  mod_announce:
+    access: announce
+  mod_blocking: {}
+  mod_caps: {}
+  mod_carboncopy: {}
+  mod_client_state: {}
+  mod_configure: {}
+  mod_disco: 
+    server_info:
+      -
+        modules: all
+        name: "abuse-addresses"
+        urls:
+          - "mailto:abuso@suchat.org"
+          - "xmpp:abuso@suchat.org"
+      -
+        modules:
+          - mod_disco
+          - mod_vcard
+        name: "admin-addresses"
+        urls:
+          - "mailto:carlos@suchat.org"
+          - "xmpp:carlos@suchat.org"
+  mod_last: {}
+  mod_muc: 
+    host: "salas.@HOST@"
+    access:
+      - allow
+    access_admin:
+      - allow: admin
+    access_create: muc_create
+    access_persistent: muc_create
+    max_user_conferences: 30
+    access_mam:
+      - allow
+    default_room_options:
+      mam: true
+  mod_muc_admin: {}
+  mod_offline: 
+    access_max_user_messages: max_user_offline_messages
+  mod_ping:
+    send_pings: true
+    ping_interval: 300
+    timeout_action: kill
+  mod_pres_counter:
+    count: 5
+    interval: 60
+  mod_privacy: {}
+  mod_private: {}
+  mod_proxy65:
+    max_connections: 10
+    access: local
+  mod_pubsub:
+    access_createnode: pubsub_createnode
+    plugins:
+      - flat
+      - pep
+  mod_push: {}
+  mod_push_keepalive: {}
+  mod_register:
+    redirect_url: "https://www.suchat.org/crear-una-cuenta/"
+    ip_access: trusted_network         
+    registration_watchers:
+      - "carlos@suchat.org"
+  mod_roster:
+    versioning: true
+  mod_mam:
+    user_mucsub_from_muc_archive: true
+    default: always
+    assume_mam_usage: true
+  mod_vcard_xupdate: {}
+  mod_stun_disco:
+    credentials_lifetime: 12h
+    services:
+      -
+        host: 82.223.66.252
+        port: 3478
+        type: stun
+        transport: udp
+        restricted: false
+      -
+        host: 82.223.66.252
+        port: 3478
+        type: turn
+        transport: udp
+        restricted: true
+      -
+        host: 2001:ba0:1800:1d6::1
+        port: 3478
+        type: stun
+        transport: udp
+        restricted: false
+      -
+        host: 2001:ba0:1800:1d6::1
+        port: 3478
+        type: turn
+        transport: udp
+        restricted: true
+      -
+        host: turn.suchat.org
+        port: 5349
+        type: turns
+        transport: tcp
+        restricted: true  
+        
+  mod_avatar: {}
+  mod_vcard: {}
+  mod_version:
+    show_os: false
+  mod_stream_mgmt:
+    resend_on_timeout: if_offline
+  mod_s2s_dialback: {}
+  mod_shared_roster: {}
+  mod_block_strangers: {}
+  mod_sic: {}
+  mod_fail2ban: {}
+  mod_http_upload:
+    docroot: "/home/xmpp/upload"
+    put_url: https://@HOST@:5443/upload
+    max_size: 15728640
+    custom_headers:
+      "Access-Control-Allow-Origin": "*"
+      "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
+      "Access-Control-Allow-Headers": "content-type"
+  mod_http_upload_quota:
+    max_days: 30
+  mod_mqtt: {}
+  mod_bosh: {}
+  mod_muc_rtbl: {}
+
+allow_contrib_modules: true
