@@ -107,6 +107,7 @@ default_db: sql
 sql_port: 3306
 sql_pool_size: 10
 sql_keepalive_interval: 28800
+update_sql_schema: true
 shaper:
   normal:
     rate: 3000
