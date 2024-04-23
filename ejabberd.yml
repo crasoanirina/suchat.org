@@ -230,7 +230,7 @@ modules:
     access_create: muc_create
     access_persistent: muc_create
     max_user_conferences: 30
-    max_users : 500
+    max_users: 500
     access_mam:
       - allow
     default_room_options:
