@@ -6,4 +6,4 @@
 
 Estos son los archivos de configuración utilizados para nuestra instalación de ejabberd que aloja suchat.org
 
-No dude en <a href="https://www.suchat.org/contacte-con-nosotros/">contactarnos</a> si tiene preguntas
+No dudes en <a href="https://www.suchat.org/contacte-con-nosotros/">contactar</a> si tiene preguntas
