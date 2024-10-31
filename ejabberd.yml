@@ -264,6 +264,7 @@ modules:
       - "carlos@suchat.org"
   mod_roster:
     versioning: true
+  mod_s2s_bidi: {}
   mod_mam:
     user_mucsub_from_muc_archive: true
     default: always
