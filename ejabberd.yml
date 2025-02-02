@@ -67,8 +67,8 @@ listen:
     use_turn: true
     turn_min_port: 49152
     turn_max_port: 65535
-    turn_ipv4_address: "82.223.66.252"
-    turn_ipv6_address: "2001:ba0:1800:1d6::1"
+    turn_ipv4_address: "37.27.209.12"
+    turn_ipv6_address: "2a01:4f9:c012:d00::1"
   -
     port: 5349
     ip: "::"
@@ -79,8 +79,8 @@ listen:
     use_turn: true
     turn_min_port: 49152
     turn_max_port: 65535
-    turn_ipv4_address: "82.223.66.252"
-    turn_ipv6_address: "2001:ba0:1800:1d6::1"
+    turn_ipv4_address: "37.27.209.12"
+    turn_ipv6_address: "2a01:4f9:c012:d00::1"
   -
     port: 1883
     module: mod_mqtt
@@ -94,7 +94,6 @@ listen:
 s2s_use_starttls: required
 disable_sasl_mechanisms: "digest-md5"
 websocket_timeout: 3600
-negotiation_timeout: 30
 s2s_access: s2s
 auth_method: sql
 auth_password_format: scram
@@ -220,6 +219,15 @@ modules:
         urls:
           - "mailto:carlos@suchat.org"
           - "xmpp:carlos@suchat.org"
+      -
+        modules:
+          - mod_disco
+          - mod_vcard
+        name: "support-addresses"
+        urls:
+          - "mailto:info@suchat.org"
+          - "xmpp:info@suchat.org"
+          - "xmpp:suchat@salas.suchat.org?join"
   mod_last: {}
   mod_muc: 
     host: "salas.@HOST@"
@@ -229,10 +237,8 @@ modules:
       - allow: admin
     access_create: muc_create
     access_persistent: muc_create
-    max_user_conferences: 30
-    max_users: 500
-    access_mam:
-      - allow
+    max_user_conferences: 100
+    max_users: 300
     default_room_options:
       mam: true
   mod_muc_admin: {}
@@ -245,6 +251,7 @@ modules:
   mod_pres_counter:
     count: 5
     interval: 60
+  mod_muc_occupantid: {}
   mod_privacy: {}
   mod_private: {}
   mod_proxy65:
@@ -255,6 +262,7 @@ modules:
     plugins:
       - flat
       - pep
+   force_node_config:
   mod_push: {}
   mod_push_keepalive: {}
   mod_register:
@@ -274,25 +282,25 @@ modules:
     credentials_lifetime: 12h
     services:
       -
-        host: 82.223.66.252
+        host: 37.27.209.12
         port: 3478
         type: stun
         transport: udp
         restricted: false
       -
-        host: 82.223.66.252
+        host: 37.27.209.12
         port: 3478
         type: turn
         transport: udp
         restricted: true
       -
-        host: 2001:ba0:1800:1d6::1
+        host: 2a01:4f9:c012:d00::1
         port: 3478
         type: stun
         transport: udp
         restricted: false
       -
-        host: 2001:ba0:1800:1d6::1
+        host: 2a01:4f9:c012:d00::1
         port: 3478
         type: turn
         transport: udp
@@ -318,7 +326,7 @@ modules:
   mod_http_upload:
     docroot: "/home/xmpp/upload"
     put_url: https://@HOST@:5443/upload
-    max_size: 15728640
+    max_size: 104857600
     custom_headers:
       "Access-Control-Allow-Origin": "*"
       "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
