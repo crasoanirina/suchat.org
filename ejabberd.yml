@@ -328,7 +328,7 @@ modules:
     put_url: https://@HOST@:5443/upload
     max_size: 104857600
     custom_headers:
-      "Access-Control-Allow-Origin": "*"
+      "Access-Control-Allow-Origin": "https://@HOST@"
       "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
       "Access-Control-Allow-Headers": "content-type"
   mod_http_upload_quota:
